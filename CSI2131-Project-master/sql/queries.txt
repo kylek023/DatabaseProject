@@ -1,0 +1,60 @@
+
+	
+
+--question1
+SELECT p.payment_type,r.start_date as signing_date,g.first_name,g.middle_name,g.last_name,k.property_type ,k.price,h.addr_country as branch,m.status
+FROM Reservation r inner JOIN Guest g ON r.guest_id=g.id left join paymentmethod p on g.id=p.guest_id inner join property k on k.id =r.property_id inner join host h on h.id=k.host_id left join payment m on m.reservation_id=r.id 
+order by p.payment_type asc, r.start_date desc;
+
+
+--question 2
+create or replace view detailguests as select b.country,g.id,g.first_name,g.middle_name,g.last_name,g.bday_day,g.bday_month,g.bday_year,g.addr_house_number,g.addr_street,g.addr_city,g.addr_province,g.addr_country
+from guest g left join reservation r on g.id=r.guest_id left join property p on r.property_id = p.id left join host h on h.id=p.host_id left join branch b on h.addr_country =b.country order by b.country, g.id;
+select * from detailguests;
+
+--question 3
+select * 
+from payment 
+where amount =( 
+select min(amount) 
+from payment)
+and status = 'paid';
+
+--question 4
+select h.addr_country, (a.cleanliness+a.communication+a.check_in+a.accuracy+a.location+a.value)/6 as reviews, p.addr_house_number,p.addr_street ,p.addr_city ,p.addr_province ,p.addr_country,p.addr_postal_code,p.property_type ,p.rental_type,p.price,p.description ,p.amenities ,p.sleeping_arrangement ,p.available_dates ,p.host_id
+from reservation r inner join property p  on p.id = r.property_id inner join host h on p.host_id=h.id left join review a on r.id = a.reservation_id
+order by h.addr_country, reviews;
+
+--question 5
+select distinct p.addr_street ,p.addr_city ,p.addr_province ,p.addr_country,p.addr_postal_code,p.property_type ,p.rental_type,p.price,p.description ,p.amenities ,p.sleeping_arrangement ,p.available_dates ,p.host_id
+from property p inner join reservation r on p.id != r.property_id;
+
+--question 6 
+select * from property p inner join reservation r on p.id=r.property_id where 10= EXTRACT(day FROM r.start_date);
+--question 7 
+select e.id,e.salary,e.first_name, e.middle_name, e.last_name, e.title, b.country as branch_id, b.branch_manager_id as branch_name 
+from employee e, branch b 
+where b.country=e.branch_country and e.salary>=15000 
+order by case e.title when 'Manager' then 1 else 2 end,e.id; 
+
+--question 8 (need input)
+select distinct p.property_type ,p.host_id,p.addr_house_number,p.addr_street ,p.addr_city ,p.addr_province ,p.addr_country,p.addr_postal_code,a.amount,b.payment_type  
+from reservation r inner join guest g on r.guest_id = "(need input)"inner join property p on r.property_id=p.id inner join payment a on a.reservation_id=r.id inner join paymentmethod b on a.payment_method_id=b.id;
+
+--question 9 (need input)
+update guest  set phone_number="(need input)" where guest.id ="(need input)";
+select * from guest;
+
+
+--question 10(completed)
+CREATE OR REPLACE FUNCTION FirstNameFirst() 
+   RETURNS TABLE (full_name text) 
+AS $$
+BEGIN
+   RETURN QUERY 
+   SELECT concat(first_name,' ',last_name) 
+   FROM guest;
+END; $$ 
+LANGUAGE 'plpgsql';
+select * from FirstNameFirst();
+
